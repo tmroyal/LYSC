@@ -1,40 +1,322 @@
 LDecoration {
-	var <>symbol, <>event;
+	classvar symbol;
 
-	*new {
-		arg symbol, event;
-		^super.newCopyArgs(symbol, event);
+	*render {
+		arg prefix, symbol;
+		^prefix++symbol;
 	}
 
-	render {
-		^symbol;
+	*event {
+		arg incoming = ();
+		^incoming;
 	}
 }
+
 
 LDynamic : LDecoration {
-	render {
-		^"\\"++symbol;
+	classvar prefix = "\\";
+
+	*render {
+		arg symbol;
+		^super.render(prefix, symbol);
+	}
+
+	*event {
+		arg incoming=(), amp;
+		incoming.amp = amp;
+		^incoming;
 	}
 }
 
+
+LDfff  : LDynamic {
+	*render {
+		^super.render("fff");
+	}
+
+	*event {
+		arg incoming=();
+
+		^super.event(incoming, 1);
+
+	}
+}
+
+LDff : LDynamic {
+	*render {
+		^super.render("ff");
+	}
+
+	*event {
+		arg incoming=();
+
+		^super.event(incoming, 7/8.0);
+	}
+}
+
+LDf : LDynamic {
+	*render {
+		^super.render("f");
+	}
+
+	*event {
+		arg incoming=();
+
+		^super.event(incoming, 3/4.0);
+	}
+}
+
+LDmf  : LDynamic {
+	*render {
+		^super.render("mf");
+	}
+
+	*event {
+		arg incoming=();
+
+		^super.event(incoming, 5/8.0);
+
+	}
+
+}
+
+LDmp  : LDynamic {
+	*render {
+		^super.render("mp");
+	}
+
+	*event {
+		arg incoming=();
+
+		^super.event(incoming, 1/2.0);
+
+	}
+}
+
+LDp  : LDynamic {
+	*render {
+		^super.render("p");
+	}
+
+	*event {
+		arg incoming=();
+
+		^super.event(incoming, 3/8.0);
+
+	}
+}
+
+LDpp  : LDynamic {
+	*render {
+		^super.render("pp");
+	}
+	*event {
+		arg incoming=();
+
+		^super.event(incoming, 1/4.0);
+
+	}
+}
+
+LDppp  : LDynamic {
+	*render {
+		^super.render("ppp");
+	}
+
+	*event {
+		arg incoming=();
+
+		^super.event(incoming, 1/8.0);
+	}
+}
+
+
 LArticulation : LDecoration {
-	render {
-		^"-"++symbol;
+	classvar prefix = "-";
+
+	*render {
+		arg symbol;
+		^super.render(prefix, symbol);
+	}
+
+	*decorateIncoming {
+		arg event, key, range;
+
+		var value = range[0].rrand(range[1]);
+
+		if (event.includesKey(key), {
+			event[key] = (event[key] + value)/2.0;
+		},{
+			event[key] = value;
+		})
+
+		^event;
+	}
+}
+
+LStaccato : LArticulation {
+	*render {
+		^super.render(".");
+	}
+
+	*event {
+		arg incoming=();
+
+		^super.decorateIncoming(incoming, \legato, [0.4,0.5]);
+	}
+}
+
+LStaccatissimo : LArticulation {
+	*render {
+		^super.render("!");
+	}
+
+	*event {
+		arg incoming=();
+
+		^super.decorateIncoming(incoming, \legato, [0.15,0.2]);
+	}
+}
+
+LPortato : LArticulation {
+	*render {
+		^super.render("_");
+	}
+
+	*event {
+		arg incoming=();
+
+		^super.decorateIncoming(incoming, \legato, [0.7,0.8]);
+	}
+}
+
+// TODO: with these articulations
+// we could redo the chan
+// by specifically allowing a chan to be
+// passed in, which would change the chan just for that event
+// NOTE: THIS IS FOR NEXT PIECE
+
+// BETTER: CUSTOM ARTICULATION, WORKS WITH EVERY SAMPLE LIBRARY
+
+LTenuto : LArticulation {
+	*render {
+		^super.render("-");
+	}
+
+	*event {
+		arg incoming=();
+
+		^super.decorateIncoming(incoming, \legato, [0.9,0.95]);
+	}
+}
+
+
+LAccent : LArticulation {
+	*render {
+		^super.render(">");
+	}
+
+	*event {
+		arg incoming=();
+
+		^super.decorateIncoming(incoming, \ampPlus, [0.5,0.5]);
+	}
+}
+
+LMarcato : LArticulation {
+	*render {
+		^super.render("^");
+	}
+
+	*event {
+		arg incoming=();
+
+		incoming = super.decorateIncoming(incoming, \ampPlus, [0.5,0.5]);
+		^super.decorateIncoming(incoming, \legato, [0.2, 0.4]);
+	}
+
+}
+
+
+LDynamicSpan : LDecoration {
+	classvar prefix = "\\";
+
+	*render {
+		arg symbol;
+		^super.render(prefix, symbol);
+	}
+
+	*event {
+		arg incoming = ();
+		incoming.ampInterp = true;
+		^incoming;
+	}
+}
+
+LCresc : LDynamicSpan {
+	*render {
+		^super.render("<");
+	}
+}
+
+LDimin : LDynamicSpan {
+	*render {
+		^super.render(">");
+	}
+}
+
+LSlur : LDecoration {
+	classvar prefix = "\\";
+
+	*render {
+		arg symbol;
+		^super.render(prefix, symbol);
+	}
+}
+
+LSlurStart : LSlur {
+	*render {
+		^super.render("(");
+	}
+
+	*event {
+		arg incoming=();
+		incoming.slur = \start;
+		^incoming;
+	}
+
+}
+
+LSlurEnd : LSlur {
+	*render {
+		^super.render(")");
+	}
+
+	*event {
+		arg incoming=();
+		incoming.slur = \end;
+		^incoming;
+	}
+}
+
+LGlissando : LDecoration {
+	*render {
+		^super.render("\\", "glissando");
 	}
 }
 
 
 LNote {
-	var <>pitch, <>duration, <>articulations, dynamic;
+	var <>pitch, <>duration, <>articulations;
 
 	*new {
-		arg pitch, duration, articulations, dynamic;
-		^super.newCopyArgs(pitch, duration, articulations, dynamic);
+		arg pitch, duration, articulations;
+		^super.newCopyArgs(pitch, duration, articulations);
 	}
 
 	render {
 		var durString = (1/duration)*4;
-		// todo: handle single and multiple articulations
+
 		var articulationString = if (articulations.notNil, {
 			articulations.inject("",{
 				|a,b|
@@ -43,8 +325,8 @@ LNote {
 		},{
 			"";
 		});
-		var dynamicString = if (dynamic.notNil, { dynamic.render }, {""});
-		^pitch.lynote++durString++articulationString++dynamicString;
+
+		^pitch.lynote++durString++articulationString;
 	}
 
 	asEvent {
@@ -54,23 +336,27 @@ LNote {
 			midinote: pitch,
 			dur: duration
 		);
+
 		if (articulations.notNil, {
 			articulations.do({
 				|articulation|
-				// s/merge/blend/g?
-				result = result.blend(articulation.event);
+
+				result = articulation.event(result);
 			});
 		});
 
-		if (dynamic.notNil, { result = result.blend(dynamic.event) });
-		if (additions.notNil, { result = result.blend(additions) });
+		if (additions.notNil, { result = result.merge(additions) });
 
 		^result;
 	}
 
 	play {
 		arg additions;
-		^this.asEvent(additions).play;
+		var ev = this.asEvent(additions);
+		if (ev.includesKey(\amp) && ev.includesKey(\ampPlus), {
+			ev.amp = (ev.amp+ev.ampplus).clip(0,1.0);
+		});
+		^ev.play;
 	}
 
 }
@@ -116,32 +402,125 @@ LColl {
 		^this.asEventList;
 	}
 
-	asEventList {
-		arg additions;
-		var previousAmp = 0.5;
+	prApplySlurs {
+		arg events;
+		var slurOn = false;
 
-		^lnotes.collect(_.asEvent(additions)
-		).flatten.collect({
-			|e|
-			if (e.includesKey(\amp).not, {
-				e.amp = previousAmp;
-			},{
-				previousAmp = e.amp;
+		events.do({
+			|ev|
+
+			if ((ev.slur == \start) && slurOn.not,{
+				slurOn == true;
 			});
-			e;
+
+			if ((ev.slur == \end) && slurOn, {
+				slurOn == false;
+			});
+
+			if (slurOn, { ev.legato = 1.0; });
 		});
 
+		^events;
+	}
+
+	prApplyDynamics {
+		arg events;
+
+		var curAmp = 0;
+		var ampIncr = 0;
+
+		events.do({
+			|ev, i|
+
+			if (ev.includesKey(\amp), {
+				curAmp = ev.amp;
+				ampIncr = 0;
+			},{
+				curAmp = curAmp+ampIncr; //ampIncr is often zero
+				ev.amp = curAmp;
+			});
+
+			if (ev.includesKey(\ampInterp),{
+
+				var nextAmpInd = events.detectIndex({
+					|ev,j|
+					(j > i) && ev.includesKey(\amp)
+				});
+
+				if (nextAmpInd.notNil, {
+					var nextAmp = events[nextAmpInd].amp;
+					"% % % %".format(nextAmp, curAmp, nextAmpInd, i).postln;
+					ampIncr = (nextAmp-curAmp)/(nextAmpInd-i);
+				});
+
+			});
+
+			if (ev.includesKey(\ampPlus),{
+				ev.amp = ev.amp + ev.ampPlus;
+			});
+
+		});
+	}
+
+	asEventList {
+		arg additions, renderAmps=true, renderSlurs=true;
+		var previousAmp = 0.5;
+
+		// we call false here incase a note is an lcoll
+		var events = lnotes.collect(_.asEvent(additions, false, false)).flatten;
+
+		if (renderSlurs, {
+			events = this.prApplySlurs(events);
+		});
+
+		if (renderAmps, {
+			events = this.prApplyDynamics(events);
+		});
+
+		^events;
+	}
+
+	// TODO: Implement me Should be easy ;-)
+	prMakeEnvelope {
+		arg events, envChan, envCtl;
+		// create envelope
+		[[],[]]
+	}
+
+	prStripAmps {
+		arg events;
+
+		events.do({
+			events.removeAt(\amp);
+			events.removeAt(\ampInterp);
+			events.removeAt(\ampPlus);
+		});
+
+		^events;
 	}
 
 	play {
-		arg additions;
-		^Pseq(this.asEventList(additions)).play;
+		arg additions, envChan, envCtl;
+
+		if (envChan.isNil || envCtl.isNil, {
+			^Pseq(this.asEventList(additions)).play; // finalize slurs and amps
+		},{
+
+			var events = this.asEventList(additions, renderAmps: false, renderSlurs: true);
+			var env = this.prMakeEnvelope(events, envChan, envCtl);
+			var envPattern = Pseg(env[0],env[1]);
+
+			events = this.prStripAmps(events);
+			^Ppar([Pseq(events),envPattern]).play;
+		});
 	}
 }
 
 
 LTuplet : LColl {
 	var <multiplier = 1;
+
+	// TODO: determine from context
 
 	*new {
 		arg notes, multiplier;
@@ -164,9 +543,10 @@ LTuplet : LColl {
 	}
 
 	asEventList {
-		arg additions;
+		arg additions, renderAmps=true, renderSlurs=true;
 
-		var events = lnotes.collect(_.asEvent(additions)).flatten;
+		var events = super.asEventList(additions, renderAmps, renderSlurs);
+
 		events.do({
 			|e| e.dur = e.dur * multiplier.reciprocal;
 		});
@@ -245,7 +625,6 @@ LCompoundMeter  {
 		});
 
 		^numericString++"\\compoundMeter #'(%)".format(sigs);
-
 	}
 }
 
@@ -272,16 +651,6 @@ LMeasure : LColl {
 	}
 }
 
-LSpan {
-}
-
-// todo: reconceive dynamics as spans
-
-LSpanEnvelope : LSpan {
-}
-
-LSpanEventEffector : LSpan {
-}
 
 
 LUtil {
