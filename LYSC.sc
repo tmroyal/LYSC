@@ -315,12 +315,16 @@ LNote {
 	}
 
 	render {
-		var durString = (1/duration)*4;
+		var durString = ((1/duration)*4).asInt.asString;
 
 		var articulationString = if (articulations.notNil, {
-			articulations.inject("",{
-				|a,b|
-				a ++ b.render;
+			if (articulations.isArray, {
+				articulations.inject("",{
+					|a,b|
+					a ++ b.render;
+				});
+			}, {
+				articulations.render;
 			});
 		},{
 			"";
