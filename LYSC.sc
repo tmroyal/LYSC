@@ -218,7 +218,7 @@ LAccent : LArticulation {
 
 	*event {
 		arg incoming=();
-
+		// TODO: maybe should be amp times
 		^super.decorateIncoming(incoming, \ampPlus, [0.5,0.5]);
 	}
 }
@@ -354,6 +354,12 @@ LNote {
 		^result;
 	}
 
+	addArticulations {
+		arg newArticulations;
+
+		articulations = articulations.add(newArticulations).flatten;
+	}
+
 	play {
 		arg additions;
 		var ev = this.asEvent(additions);
@@ -382,8 +388,13 @@ LColl {
 		^super.newCopyArgs(notes);
 	}
 
+	at {
+		arg ind;
+		^lnotes[ind];
+	}
+
 	render {
-		^lnotes.collect(_.render).inject("", _+_);
+		^lnotes.collect(_.render).inject("", _+_).subStr(1);
 	}
 
 	pitch {
@@ -414,14 +425,16 @@ LColl {
 			|ev|
 
 			if ((ev.slur == \start) && slurOn.not,{
-				slurOn == true;
+				slurOn = true;
 			});
 
 			if ((ev.slur == \end) && slurOn, {
-				slurOn == false;
+				slurOn = false;
 			});
 
 			if (slurOn, { ev.legato = 1.0; });
+
+			ev.removeAt(\slur);
 		});
 
 		^events;
@@ -453,17 +466,22 @@ LColl {
 
 				if (nextAmpInd.notNil, {
 					var nextAmp = events[nextAmpInd].amp;
-					"% % % %".format(nextAmp, curAmp, nextAmpInd, i).postln;
+					"% % % %".format(nextAmp, curAmp, nextAmpInd, i);
 					ampIncr = (nextAmp-curAmp)/(nextAmpInd-i);
 				});
+
+				ev.removeAt(\ampInterp);
 
 			});
 
 			if (ev.includesKey(\ampPlus),{
-				ev.amp = ev.amp + ev.ampPlus;
+				ev.amp = (ev.amp + ev.ampPlus).clip(0.0,1.0);
+				ev.removeAt(\ampPlus);
 			});
 
 		});
+
+		^events;
 	}
 
 	asEventList {
@@ -494,17 +512,13 @@ LColl {
 	prStripAmps {
 		arg events;
 
-		events.do({
-			events.removeAt(\amp);
-			events.removeAt(\ampInterp);
-			events.removeAt(\ampPlus);
-		});
+		events.do({ events.removeAt(\amp); });
 
 		^events;
 	}
 
 	play {
-		arg additions, envChan, envCtl;
+		arg additions, envChan, envCtl, stripAmps=false;
 
 		if (envChan.isNil || envCtl.isNil, {
 			^Pseq(this.asEventList(additions)).play; // finalize slurs and amps
@@ -514,7 +528,8 @@ LColl {
 			var env = this.prMakeEnvelope(events, envChan, envCtl);
 			var envPattern = Pseg(env[0],env[1]);
 
-			events = this.prStripAmps(events);
+			"LColl.play: envChan/envCtl not implemented yes".warn;
+			if (stripAmps, { events = this.prStripAmps(events); });
 			^Ppar([Pseq(events),envPattern]).play;
 		});
 	}
@@ -524,7 +539,7 @@ LColl {
 LTuplet : LColl {
 	var <multiplier = 1;
 
-	// TODO: determine from context
+	// TODO: determine from context rather than stupid "newFromLColl"
 
 	*new {
 		arg notes, multiplier;
@@ -601,7 +616,7 @@ LCompoundMeter  {
 		var timeSignatures = signaturesArray.collect({
 			|signature|
 			LTimeSignature(signature[0], signature[1]);
-		}).postln;
+		});
 
 		^super.newCopyArgs(timeSignatures, numericString);
 	}
