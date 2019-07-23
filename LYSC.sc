@@ -393,6 +393,11 @@ LColl {
 		^lnotes[ind];
 	}
 
+	collect {
+		arg f;
+		^lnotes.collect(f);
+	}
+
 	render {
 		^lnotes.collect(_.render).inject("", _+_).subStr(1);
 	}
@@ -544,11 +549,6 @@ LTuplet : LColl {
 	*new {
 		arg notes, multiplier;
 		^super.newCopyArgs(notes, multiplier);
-	}
-
-	*newFromLColl {
-		arg coll, multiplier;
-		^super.newCopyArgs(coll.lnotes, multiplier);
 	}
 
 	render {

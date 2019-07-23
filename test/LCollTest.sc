@@ -1,4 +1,4 @@
-LCollTests : UnitTest {
+TestLColl : UnitTest {
 	test_lcoll_render {
 		var res = LColl([LNote(60,2),LNote(60,2)]).render;
 		this.assertEquals(res, "c'2 c'2", "lcoll render");
