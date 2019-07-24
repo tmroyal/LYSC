@@ -13,6 +13,10 @@ TestLNoteRendering : UnitTest {
 		this.assertEquals(LNote(60, 0.5, [LStaccato, LSlurStart]).render, "c'8-.\\(", "LNote multi");
 	}
 
+	test_notes_rest_render {
+		this.assertEquals(LNote(\rest, 0.5).render, "r8");
+	}
+
 }
 
 TestLNoteEvents : UnitTest {
@@ -35,5 +39,11 @@ TestLNoteEvents : UnitTest {
 
 	test_notes_prototype_event {
 		this.assertEquals(LNote(60,0.5).asEvent((test:1)), (midinote: 60, dur:0.5, test: 1), "Lnote.event prototype");
+	}
+
+
+
+	test_notes_rest_event {
+		this.assertEquals(LNote(\rest, 0.5).asEvent,(midinote: \rest, dur: 0.5));
 	}
 }
