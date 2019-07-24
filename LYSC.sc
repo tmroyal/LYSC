@@ -77,8 +77,10 @@ LDmf  : LDynamic {
 		^super.event(incoming, 5/8.0);
 
 	}
-
 }
+
+// TODO
+// LTie
 
 LDmp  : LDynamic {
 	*render {
@@ -330,7 +332,13 @@ LNote {
 			"";
 		});
 
-		^pitch.lynote++durString++articulationString;
+		var pitchString = if (pitch != \rest, {
+			pitch.lynote;
+		},{
+			"r";
+		});
+
+		^pitchString++durString++articulationString;
 	}
 
 	asEvent {
@@ -670,10 +678,49 @@ LMeasure : LColl {
 	}
 }
 
+LStaff : LColl {
+	var clef;
 
+	*new {
+		arg notes, clef="treble";
+		^super.newCopyArgs(notes, clef);
+	}
+
+	render {
+		^"\\new Staff \\absolute { \\clef % % }".format(clef.asString, super.render);
+	}
+}
+
+LStaffGroup {
+	var staves, type;
+
+	*new {
+		arg staves, type="";
+		^super.newCopyArgs(staves, type);
+	}
+
+	contextWrapper {
+		var prefix = if (type.size > 0, {"\\new %".format(type) }, {""});
+		^prefix++" <<\n % >>";
+	}
+
+	render {
+		var rendered = staves.inject("", {
+			|res, staff|
+			res ++ "\t" ++ staff.render ++ "\n";
+		});
+		^this.contextWrapper.format(rendered);
+	}
+
+	play {
+		^staves.do(_.play);
+	}
+}
 
 LUtil {
 	*doNothing {
 		^nil;
 	}
+	// consolidateRests {}
+	// consolidateTiedNotes {}
 }
