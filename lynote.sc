@@ -7,7 +7,7 @@
 
 		var pc = this.round(1.0) % 12;
 
-		var base = if (fsyms == \flat, {
+		var base = if (sign == \flat, {
 			fsyms[pc]
 		},{
 			ssyms[pc]

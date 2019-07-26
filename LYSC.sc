@@ -1,3 +1,5 @@
+// TODO: bring in lynote
+
 LDecoration {
 	classvar symbol;
 
@@ -309,11 +311,11 @@ LGlissando : LDecoration {
 
 
 LNote {
-	var <>pitch, <>duration, <>articulations;
+	var <>pitch, <>duration, <>articulations, sign=\sharp;
 
 	*new {
-		arg pitch, duration, articulations;
-		^super.newCopyArgs(pitch, duration, articulations);
+		arg pitch, duration, articulations, sign;
+		^super.newCopyArgs(pitch, duration, articulations, sign);
 	}
 
 	render {
@@ -332,8 +334,9 @@ LNote {
 			"";
 		});
 
+
 		var pitchString = if (pitch != \rest, {
-			pitch.lynote;
+			pitch.lynote(sign: sign);
 		},{
 			"r";
 		});
@@ -364,8 +367,12 @@ LNote {
 
 	addArticulations {
 		arg newArticulations;
+		if (articulations.isArray, {
 
-		articulations = articulations.add(newArticulations).flatten;
+			articulations = articulations.add(newArticulations).flatten;
+		}, {
+			articulations = [articulations].add(newArticulations).flatten;
+		})
 	}
 
 	play {
@@ -548,25 +555,26 @@ LColl {
 	}
 }
 
+// TODO: Refactor with expicit fraction, not a multiplier 6/4 is one example
+// of when we need this, as the reduction to 3/2 makes a double triplet rather than
+// a sextuplet
+// observe tests as well
 
 LTuplet : LColl {
-	var <multiplier = 1;
+	var <numerator, <denominator;
 
-	// TODO: determine from context rather than stupid "newFromLColl"
 
 	*new {
-		arg notes, multiplier;
-		^super.newCopyArgs(notes, multiplier);
+		arg notes, numerator, denominator;
+		^super.newCopyArgs(notes, numerator.asInt, denominator.asInt);
 	}
 
 	render {
-		var frac = multiplier.asFraction;
-
-		^"\\tuplet %/% { % }".format(frac[0], frac[1], super.render);
+		^"\\tuplet %/% { % }".format(numerator, denominator, super.render);
 	}
 
 	durations {
-		^super.durations * multiplier.reciprocal;
+		^super.durations * (denominator/numerator);
 	}
 
 	asEventList {
@@ -575,7 +583,7 @@ LTuplet : LColl {
 		var events = super.asEventList(additions, renderAmps, renderSlurs);
 
 		events.do({
-			|e| e.dur = e.dur * multiplier.reciprocal;
+			|e| e.dur = e.dur * (denominator/numerator);
 		});
 		^events;
 	}
@@ -679,20 +687,26 @@ LMeasure : LColl {
 }
 
 LStaff : LColl {
-	var clef;
+	var clef, timeSignature;
 
 	*new {
-		arg notes, clef="treble";
-		^super.newCopyArgs(notes, clef);
+		arg notes, clef="treble", timeSignature;
+		^super.newCopyArgs(notes, clef, timeSignature);
 	}
 
 	render {
-		^"\\new Staff \\absolute { \\clef % % }".format(clef.asString, super.render);
+		var tsString = if (timeSignature.notNil, {
+			timeSignature.render;
+		},{
+			""
+		});
+
+		^"\\new Staff \\absolute { % \\clef % % }".format(tsString, clef.asString, super.render);
 	}
 }
 
 LStaffGroup {
-	var staves, type;
+	var <staves, type;
 
 	*new {
 		arg staves, type="";
