@@ -78,6 +78,13 @@ TestLColl : UnitTest {
 		this.assertEquals(coll.asEventList[1], (dur: 2, amp: 0.625, midinote: 60), "render cresc");
 	}
 
+	test_lcoll_concatenate {
+		var testColl = LColl(Array.fill(2, { LNote(60,1) }));
+		testColl = testColl ++ testColl;
+
+		this.assertEquals(testColl.render, "c'4 c'4 c'4 c'4");
+	}
+
 }
 
 // TODO: Test pitches

@@ -389,18 +389,14 @@ LNote {
 LColl {
 	var <lnotes;
 
-	*newWithPitchesAndDurs {
-		arg pitches, durations;
-		var notes = pitches.size.collect({
-			|i|
-			LNote(pitches[i], durations.wrapAt(i));
-		});
-		^super.newCopyArgs(notes);
-	}
-
 	*new {
 		arg notes;
 		^super.newCopyArgs(notes);
+	}
+
+	++ {
+		arg other;
+		^LColl(this.lnotes ++ other.lnotes);
 	}
 
 	at {
