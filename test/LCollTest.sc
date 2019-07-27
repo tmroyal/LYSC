@@ -105,6 +105,3 @@ TestLColl : UnitTest {
 	}
 
 }
-
-// TODO: Test pitches
-// TODO: Test durations

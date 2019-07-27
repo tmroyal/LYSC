@@ -683,9 +683,9 @@ LCompoundMeter  {
 	== {
 		arg other;
 		^if (other.timeSignatures.size == this.timeSignatures.size, {
-			other.timeSignatures.size.every({
-				|i|
-				other.timeSignatures[i] == this.timeSignatures[i];
+			other.timeSignatures.every({
+				|otherTs, i|
+				otherTs == this.timeSignatures[i];
 			});
 		},{
 			false;
@@ -701,6 +701,8 @@ LCompoundMeter  {
 
 		^numericString++"\\compoundMeter #'(%)".format(sigs);
 	}
+
+	asEvent { ^nil }
 }
 
 LMeasure : LColl {
