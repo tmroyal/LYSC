@@ -404,7 +404,7 @@ LColl {
 				LColl(this.lnotes ++ [other]);
 			},
 			{
-				"Cannot concat LColl with class: %".format(other.class.asString).warn;
+				LCollConcatError("Cannot concat LColl with non LColl/LTuplet").throw;
 			}
 		);
 
@@ -563,10 +563,12 @@ LColl {
 	}
 }
 
-// TODO: Refactor with expicit fraction, not a multiplier 6/4 is one example
-// of when we need this, as the reduction to 3/2 makes a double triplet rather than
-// a sextuplet
-// observe tests as well
+LCollConcatError : Error {
+	*new {
+		arg what;
+		^super.newCopyArgs(what);
+	}
+}
 
 LTuplet : LColl {
 	var <numerator, <denominator;
@@ -579,6 +581,10 @@ LTuplet : LColl {
 
 	++ {
 		arg other;
+
+		if ((other.class != LColl) && (other.class != LTuplet), {
+			LCollConcatError("Cannot concat LColl with non LColl/LTuplet").throw;
+		});
 
 		^LColl([this, other]);
 	}

@@ -85,6 +85,12 @@ TestLColl : UnitTest {
 		this.assertEquals(testColl.render, "c'4 c'4 c'4 c'4");
 	}
 
+	test_lcoll_illegal_concat {
+		this.assertException({
+			LColl([]) ++ 1;
+		}, LCollConcatError);
+	}
+
 }
 
 // TODO: Test pitches

@@ -60,4 +60,10 @@ TestLTuplet : UnitTest {
 		this.assertEquals((testCol++testTup).render, "c'4 \\tuplet 3/2 { c'8 c'8 c'8 }");
 	}
 
+	test_ltupelet_concat_error {
+		this.assertException({
+			LTuplet([],3,2) ++ 1;
+		}, LCollConcatError);
+	}
+
 }
