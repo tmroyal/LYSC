@@ -396,7 +396,19 @@ LColl {
 
 	++ {
 		arg other;
-		^LColl(this.lnotes ++ other.lnotes);
+		var res = switch (other.class,
+			LColl, {
+				LColl(this.lnotes ++ other.lnotes);
+			},
+			LTuplet, {
+				LColl(this.lnotes ++ [other]);
+			},
+			{
+				"Cannot concat LColl with class: %".format(other.class.asString).warn;
+			}
+		);
+
+		^res
 	}
 
 	at {
@@ -563,6 +575,12 @@ LTuplet : LColl {
 	*new {
 		arg notes, numerator, denominator;
 		^super.newCopyArgs(notes, numerator.asInt, denominator.asInt);
+	}
+
+	++ {
+		arg other;
+
+		^LColl([this, other]);
 	}
 
 	render {

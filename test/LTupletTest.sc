@@ -52,4 +52,12 @@ TestLTuplet : UnitTest {
 
 	}
 
+	test_ltuplet_concatenate {
+		var testTup = LTuplet(Array.fill(3,{LNote(60,0.5)}), 3, 2);
+		var testCol = LColl([LNote(60,1)]);
+
+		this.assertEquals((testTup++testTup).render, "\\tuplet 3/2 { c'8 c'8 c'8 } \\tuplet 3/2 { c'8 c'8 c'8 }");
+		this.assertEquals((testCol++testTup).render, "c'4 \\tuplet 3/2 { c'8 c'8 c'8 }");
+	}
+
 }
