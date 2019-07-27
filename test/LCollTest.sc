@@ -70,10 +70,11 @@ TestLColl : UnitTest {
 
 	}
 
-	test_lcoll_render_dim {
+	test_lcoll_eventlist_render_dim {
 		var coll = LColl(Array.fill(3, { LNote(60,2) }));
 		coll[0].addArticulations([LDff,LDimin]);
 		coll[2].addArticulations(LDp);
+
 
 		this.assertEquals(coll.asEventList[1], (dur: 2, amp: 0.625, midinote: 60), "render cresc");
 	}
@@ -89,6 +90,18 @@ TestLColl : UnitTest {
 		this.assertException({
 			LColl([]) ++ 1;
 		}, LCollConcatError);
+	}
+
+	test_renders_tsandcleff {
+		var testColl = LColl([LClef("treble"), LTimeSignature(4,4), LNote(60,1)]);
+		this.assertEquals(testColl.render, "\\clef treble \\time 4/4 c'4");
+	}
+
+	test_does_not_event_nil {
+		var testColl = LColl([LClef("treble"), LTimeSignature(4,4), LNote(60,1)]);
+
+		this.assertEquals(testColl.asEventList(renderAmps: false), [(midinote:60, dur:1)]);
+
 	}
 
 }

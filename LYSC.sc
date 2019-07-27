@@ -314,7 +314,12 @@ LNote {
 	var <>pitch, <>duration, <>articulations, sign=\sharp;
 
 	*new {
-		arg pitch, duration, articulations, sign;
+		arg pitch, duration, articulations=[], sign;
+
+		if (articulations.isArray.not, {
+			articulations = [articulations];
+		});
+
 		^super.newCopyArgs(pitch, duration, articulations, sign);
 	}
 
@@ -322,14 +327,12 @@ LNote {
 		var durString = ((1/duration)*4).asInt.asString;
 
 		var articulationString = if (articulations.notNil, {
-			if (articulations.isArray, {
-				articulations.inject("",{
-					|a,b|
-					a ++ b.render;
-				});
-			}, {
-				articulations.render;
+
+			articulations.inject("",{
+				|a,b|
+				a ++ b.render;
 			});
+
 		},{
 			"";
 		});
@@ -367,12 +370,7 @@ LNote {
 
 	addArticulations {
 		arg newArticulations;
-		if (articulations.isArray, {
-
-			articulations = articulations.add(newArticulations).flatten;
-		}, {
-			articulations = [articulations].add(newArticulations).flatten;
-		})
+		articulations = articulations ++ newArticulations;
 	}
 
 	play {
@@ -517,7 +515,10 @@ LColl {
 		var previousAmp = 0.5;
 
 		// we call false here incase a note is an lcoll
-		var events = lnotes.collect(_.asEvent(additions, false, false)).flatten;
+		var events = lnotes.collect(
+			_.asEvent(additions, false, false)
+		).flatten.select(_.notNil);
+
 
 		if (renderSlurs, {
 			events = this.prApplySlurs(events);
@@ -621,6 +622,11 @@ LTimeSignature {
 		^super.newCopyArgs(numerator, denominator, numericString);
 	}
 
+	== {
+		arg other;
+		^(numerator == other.numerator) && (denominator == other.denominator)
+	}
+
 	*getNumericString {
 		arg style;
 		^switch(
@@ -639,6 +645,8 @@ LTimeSignature {
 	render {
 		^numericString++"\\time %/%".format(numerator, denominator);
 	}
+
+	asEvent { ^nil }
 }
 
 LCompoundMeter  {
@@ -670,6 +678,18 @@ LCompoundMeter  {
 
 	duration {
 		^timeSignatures.collect(_.duration).sum;
+	}
+
+	== {
+		arg other;
+		^if (other.timeSignatures.size == this.timeSignatures.size, {
+			other.timeSignatures.size.every({
+				|i|
+				other.timeSignatures[i] == this.timeSignatures[i];
+			});
+		},{
+			false;
+		})
 	}
 
 	render {
@@ -706,12 +726,62 @@ LMeasure : LColl {
 	}
 }
 
+LClef {
+	var clefname;
+
+	*new {
+		arg clefname;
+		^super.newCopyArgs(clefname);
+	}
+
+	asEvent { ^nil }
+
+	render {
+		^"\\clef "++clefname;
+	}
+}
+
 LStaff : LColl {
 	var clef, timeSignature;
 
 	*new {
-		arg notes, clef="treble", timeSignature;
+		arg notes, clef, timeSignature;
+
+		if (clef.isNil, { clef = LClef("treble") });
+
 		^super.newCopyArgs(notes, clef, timeSignature);
+	}
+
+	prAsArray {
+		arg lstaff, addTimeSignature=true, addClef=true;
+		var res = [];
+		if (lstaff.timeSignature.notNil && addTimeSignature, {
+			res = res ++ [timeSignature]
+		});
+		if (lstaff.clef.notNil && addClef, {
+			res = res ++ [clef]
+		});
+
+		^res++lstaff.lnotes;
+	}
+
+	++ {
+		arg other;
+
+		if (other.class != LStaff, {
+			LCollConcatError(
+				"Cannot concat LStaff with class %".format(other.class.asString)
+			).throw;
+		});
+
+		^if (other.timeSignature.isNil && other.clef.isNil, {
+			LStaff(this.lnotes++other.lnotes, clef, timeSignature);
+		},{
+			var addTimeSignature = (other.timeSignature != this.timeSignature);
+			var addClef = (other.timeSignature != this.clef);
+			LStaff(prAsArray(this)++prAsArray(other), addTimeSignature, addClef);
+		});
+
 	}
 
 	render {
@@ -721,7 +791,13 @@ LStaff : LColl {
 			""
 		});
 
-		^"\\new Staff \\absolute { % \\clef % % }".format(tsString, clef.asString, super.render);
+		var clefString = if (clef.notNil, {
+			clef.render;
+		},{
+			""
+		});
+
+		^"\\new Staff \\absolute { % % % }".format(tsString, clef, super.render);
 	}
 }
 
