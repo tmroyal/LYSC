@@ -816,17 +816,65 @@ LStaff : LColl {
 	}
 }
 
+LStaffGroupConcatError : Error {
+	*new { arg with; ^super.new(with); }
+}
+
+LStaffGroupTypeError : Error {
+	*new {arg with; ^super.new(with); }
+}
+
 LStaffGroup {
 	var <staves, type;
 
 	*new {
 		arg staves, type="";
+
+		var correctType = staves.every({
+			|stave|
+			(stave.class == LStaff) || (stave.class == LStaffGroup)
+		});
+
+		if (correctType.not, {
+			LStaffGroupTypeError(
+				"All staves in group must be LStaff or LStaffGroup"
+			).throw;
+		});
+
 		^super.newCopyArgs(staves, type);
 	}
 
 	contextWrapper {
 		var prefix = if (type.size > 0, {"\\new %".format(type) }, {""});
 		^prefix++" <<\n % >>";
+	}
+
+	hasSameStructure {
+		arg otherStaffGroup;
+
+		// we only need to ensure that staves.size are equal
+		// and each "Staff" is of the same type
+		// only top level is needed, as concat is recursive
+		^staves.every({
+			|stave, i|
+			otherStaffGroup.staves[i].class ==
+			stave.class;
+		});
+	}
+
+	++ {
+		arg other;
+		if (this.hasSameStructure(otherStaffGroup), {
+			var newstaves = staves.collect({
+				|stave, i|
+				stave ++ other[i];
+			});
+			^LStaffGroup(newstaves, type);
+		}, {
+			LStaffGroupConcatError(
+				"Detected staff groups with incompatible structure"
+			).throw;
+		});
 	}
 
 	render {
