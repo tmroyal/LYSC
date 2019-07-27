@@ -719,6 +719,11 @@ LMeasure : LColl {
 		^super.newCopyArgs(notes, timeSignature, renderTimeSignature, comment);
 	}
 
+	++ {
+		LCollConcatError("Measure concatenation is not supported").throw;
+	}
+
+
 	exceedsBounds {
 		^(super.durations.sum > timeSignature.duration);
 	}
@@ -729,7 +734,7 @@ LMeasure : LColl {
 }
 
 LClef {
-	var clefname;
+	var <clefname;
 
 	*new {
 		arg clefname;
@@ -741,15 +746,18 @@ LClef {
 	render {
 		^"\\clef "++clefname;
 	}
+
+	== {
+		arg other;
+		^other.clefname == this.clefname;
+	}
 }
 
 LStaff : LColl {
-	var clef, timeSignature;
+	var <clef, <timeSignature;
 
 	*new {
 		arg notes, clef, timeSignature;
-
-		if (clef.isNil, { clef = LClef("treble") });
 
 		^super.newCopyArgs(notes, clef, timeSignature);
 	}
@@ -758,13 +766,13 @@ LStaff : LColl {
 		arg lstaff, addTimeSignature=true, addClef=true;
 		var res = [];
 		if (lstaff.timeSignature.notNil && addTimeSignature, {
-			res = res ++ [timeSignature]
+			res = res ++ [lstaff.timeSignature]
 		});
 		if (lstaff.clef.notNil && addClef, {
-			res = res ++ [clef]
+			res = res ++ [lstaff.clef]
 		});
 
-		^res++lstaff.lnotes;
+		^(res++lstaff.lnotes);
 	}
 
 	++ {
@@ -780,8 +788,11 @@ LStaff : LColl {
 			LStaff(this.lnotes++other.lnotes, clef, timeSignature);
 		},{
 			var addTimeSignature = (other.timeSignature != this.timeSignature);
-			var addClef = (other.timeSignature != this.clef);
-			LStaff(prAsArray(this)++prAsArray(other), addTimeSignature, addClef);
+			var addClef = (other.clef != this.clef);
+			LStaff(
+				this.prAsArray(this) ++
+				this.prAsArray(other, addTimeSignature, addClef)
+			);
 		});
 
 	}
@@ -799,7 +810,9 @@ LStaff : LColl {
 			""
 		});
 
-		^"\\new Staff \\absolute { % % % }".format(tsString, clef, super.render);
+		var items = "% % %".format(tsString, clefString, super.render).stripWhiteSpace;
+
+		^"\\new Staff \\absolute { % }".format(items);
 	}
 }
 
