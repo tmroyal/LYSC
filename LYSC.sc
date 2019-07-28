@@ -1,4 +1,3 @@
-// TODO: bring in lynote
 
 LDecoration {
 	classvar symbol;
@@ -924,3 +923,72 @@ LUtil {
 	// consolidateRests {}
 	// consolidateTiedNotes {}
 }
+
+// TODO: write tests
+
+LFileTools {
+	*write {
+		arg path, contents;
+		var f = File.new(path, "w");
+		f.write(contents);
+		^f.close;
+	}
+
+	*writeTempFile {
+		arg contents;
+
+		var tempDir = (
+			Platform.userConfigDir +/+ "lysc_conf.yaml"
+		).parseYAMLFile.at("tempDirectory");
+
+		var date = Date.getDate.rawSeconds.asInt;
+		var path = tempDir +/+ "lysc%.ly".format(date);
+
+		this.write(path, contents);
+
+		^path
+	}
+
+	*viewCode {
+		arg contents, verbose = false;
+
+		^this.writeTempFile(contents).openOS;
+	}
+
+	*view {
+		arg contents, verbose = false, action={};
+
+		var path = this.writeTempFile(contents);
+
+		var lyPath = (
+			Platform.userConfigDir +/+ "lysc_conf.yaml"
+		).parseYAMLFile.at("lilypondPath");
+
+		^this.renderPath(path, verbose, action);
+	}
+
+	*renderPath {
+		arg path, verbose = false, action={};
+
+		var lyPath = (
+			Platform.userConfigDir +/+ "lysc_conf.yaml"
+		).parseYAMLFile.at("lilypondPath");
+
+		var blankPath = path.replace(".ly","");
+
+		(lyPath ++ " -o % %".format(blankPath, path)).postln.unixCmd({
+			|res|
+
+			if (res == 0, {
+				(blankPath++".pdf").openOS;
+				action.();
+			}, {
+				"Something went wrong during lilypond file render".error;
+			});
+		}, verbose);
+
+		^path;
+	}
+
+}
+
