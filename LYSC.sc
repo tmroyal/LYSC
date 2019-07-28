@@ -633,7 +633,7 @@ LTimeSignature {
 			style,
 			\none, {""},
 			\default, {"\\defaultTimeSignature\n"},
-			\numeric, {"\\numericTimeSignature\n"},
+			\numeric, {"\\numericTimeSignature "},
 			{""}
 		);
 	}

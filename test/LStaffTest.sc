@@ -7,7 +7,7 @@ TestLStaff : UnitTest {
 
 		this.assertEquals(
 			staff.render,
-			"\\new Staff \\absolute { \\time 4/4 \\clef treble c'4 c'4 }"
+			"\t\\new Staff \\absolute { \\time 4/4 \\clef treble c'4 c'4 }"
 		);
 
 	}
@@ -31,7 +31,7 @@ TestLStaff : UnitTest {
 
 		this.assertEquals(
 			staves.render,
-			"\\new Staff \\absolute { c'4 c'4 c'4 c'4 }"
+			"\t\\new Staff \\absolute { c'4 c'4 c'4 c'4 }"
 		);
 
 	}
@@ -45,7 +45,7 @@ TestLStaff : UnitTest {
 
 		this.assertEquals(
 			staff.render,
-			"\\new Staff \\absolute { \\time 4/4 \\clef treble c'4 c'4 c'4 }"
+			"\t\\new Staff \\absolute { \\time 4/4 \\clef treble c'4 c'4 c'4 }"
 		);
 
 	}
@@ -59,7 +59,7 @@ TestLStaff : UnitTest {
 
 		this.assertEquals(
 			staff.render,
-			"\\new Staff \\absolute { \\time 4/4 \\clef treble c'4 c'4 c'4 }"
+			"\t\\new Staff \\absolute { \\time 4/4 \\clef treble c'4 c'4 c'4 }"
 		);
 	}
 
@@ -72,7 +72,7 @@ TestLStaff : UnitTest {
 
 		this.assertEquals(
 			staff.render,
-			"\\new Staff \\absolute { \\time 4/4 \\clef treble c'4 c'4 \\clef bass c'4 }"
+			"\t\\new Staff \\absolute { \\time 4/4 \\clef treble c'4 c'4 \\clef bass c'4 }"
 		);
 	}
 
@@ -86,7 +86,7 @@ TestLStaff : UnitTest {
 
 		this.assertEquals(
 			staff.render,
-			"\\new Staff \\absolute { \\time 2/4 \\clef treble c'4 c'4 c'4 }"
+			"\t\\new Staff \\absolute { \\time 2/4 \\clef treble c'4 c'4 c'4 }"
 		);
 	}
 
@@ -99,7 +99,7 @@ TestLStaff : UnitTest {
 
 		this.assertEquals(
 			staff.render,
-			"\\new Staff \\absolute { \\time 2/4 \\clef treble c'4 c'4 \\time 4/4 c'4 }"
+			"\t\\new Staff \\absolute { \\time 2/4 \\clef treble c'4 c'4 \\time 4/4 c'4 }"
 		);
 	}
 

@@ -9,7 +9,7 @@ TestLTimeSignature : UnitTest {
 	}
 
 	test_timesignature_numeric {
-		this.assertEquals(LTimeSignature(4,4,\numeric), "\\numericTimeSignature \\time 4/4");
+		this.assertEquals(LTimeSignature(4,4,\numeric).render, "\\numericTimeSignature \\time 4/4");
 	}
 
 	test_accurate_duration {
