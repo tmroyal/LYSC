@@ -797,6 +797,10 @@ LStaff : LColl {
 
 	}
 
+	duration {
+		^this.asEventList.collect(_.dur).sum;
+	}
+
 	render {
 		var tsString = if (timeSignature.notNil, {
 			timeSignature.render;
@@ -812,7 +816,7 @@ LStaff : LColl {
 
 		var items = "% % %".format(tsString, clefString, super.render).stripWhiteSpace;
 
-		^"\\new Staff \\absolute { % }".format(items);
+		^"\t\\new Staff \\absolute { % }".format(items);
 	}
 }
 
@@ -826,6 +830,8 @@ LStaffGroupTypeError : Error {
 
 LStaffGroup {
 	var <staves, type;
+
+	// TODO: warn when durations do not match
 
 	*new {
 		arg staves, type="";
@@ -844,17 +850,16 @@ LStaffGroup {
 		^super.newCopyArgs(staves, type);
 	}
 
+
+
 	contextWrapper {
-		var prefix = if (type.size > 0, {"\\new %".format(type) }, {""});
-		^prefix++" <<\n % >>";
+		var prefix = if (type.size > 0, {"\\new % ".format(type) }, {""});
+		^prefix++"<<\n % >>";
 	}
 
 	hasSameStructure {
 		arg otherStaffGroup;
 
-		// we only need to ensure that staves.size are equal
-		// and each "Staff" is of the same type
-		// only top level is needed, as concat is recursive
 		^staves.every({
 			|stave, i|
 			otherStaffGroup.staves[i].class ==
@@ -862,12 +867,34 @@ LStaffGroup {
 		});
 	}
 
+	duration {
+		var res = 0;
+		staves.do({
+			|stave|
+			if (stave.duration > res, {
+				res = stave.duration;
+			});
+		});
+		^res;
+	}
+
+	hasConsistentStaffDurations {
+		^(staves.collect(_.duration).asSet.size == 1);
+	}
+
 	++ {
 		arg other;
-		if (this.hasSameStructure(otherStaffGroup), {
+
+		if (this.hasConsistentStaffDurations.not, {
+			LStaffGroupConcatError(
+				"Staff durations are not equal";
+			).throw;
+		});
+
+		if (this.hasSameStructure(other), {
 			var newstaves = staves.collect({
 				|stave, i|
-				stave ++ other[i];
+				stave ++ other.staves[i];
 			});
 			^LStaffGroup(newstaves, type);
 		}, {
@@ -880,9 +907,9 @@ LStaffGroup {
 	render {
 		var rendered = staves.inject("", {
 			|res, staff|
-			res ++ "\t" ++ staff.render ++ "\n";
+			res ++ staff.render ++ "\n";
 		});
-		^this.contextWrapper.format(rendered);
+		^this.contextWrapper.format(rendered).stripWhiteSpace;
 	}
 
 	play {

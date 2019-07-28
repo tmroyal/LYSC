@@ -103,4 +103,13 @@ TestLStaff : UnitTest {
 		);
 	}
 
+	test_duration {
+		var staff = LStaff(
+			[LNote(60,1),LNote(60,1)],
+			LClef("treble"),
+			LTimeSignature(4,4));
+
+		this.assertEquals(staff.duration, 2);
+	}
+
 }
